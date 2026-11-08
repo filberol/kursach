@@ -1,0 +1,82 @@
+name: Тесты и публикация на GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Разрешения нужны именно действию deploy-pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Параллельные публикации не нужны: держим одну актуальную.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # Тесты идут отдельной работой и блокируют публикацию: на Pages не должен
+  # попасть сайт, у которого расчёт расходится с ручной проверкой.
+  test:
+    name: Проверка расчётов
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Тесты (реестр, формулы, ручная сверка, сборка)
+        run: npm test
+
+      - name: Выгрузка проверки расчётов
+        run: npm run checks
+
+      - name: Реестр источников не разошёлся с data/tariffs.json
+        run: |
+          npm run docs
+          if ! git diff --quiet -- docs/registry.md; then
+            echo "::error::docs/registry.md отличается от сгенерированного из data/tariffs.json."
+            echo "Запустите «npm run docs» и закоммитьте результат."
+            git diff -- docs/registry.md
+            exit 1
+          fi
+
+  build:
+    name: Сборка сайта
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Сборка статики
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Публикация
+    needs: build
+    # Публикуем только с основной ветки: pull request должен проходить тесты,
+    # но не менять то, что видно по ссылке.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

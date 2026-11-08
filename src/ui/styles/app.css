@@ -1,0 +1,132 @@
+/* Раскладка приложения. Макет рассчитан и на телефон: боковые отступы 16px,
+   горизонтальной прокрутки страницы нет. */
+
+.page { max-width: 1180px; margin: 0 auto; padding: 24px 16px 72px; }
+
+.stack { display: grid; gap: 24px; }
+.stack--tight { gap: 12px; }
+
+.hero { display: grid; gap: 8px; margin-bottom: 8px; }
+
+.controls-grid {
+  display: grid;
+  gap: 20px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.control-row { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+
+.results-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* --- Карточка результата по предложению --- */
+
+.offer { display: grid; gap: 12px; align-content: start; }
+.offer__head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.offer__title { display: grid; gap: 2px; min-width: 0; }
+.offer__swatch {
+  width: 12px; height: 12px; border-radius: 3px; flex: none; margin-top: 5px;
+  box-shadow: 0 0 0 2px var(--md-surface-container-low);
+}
+.offer__headline { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.offer__amount { font-variant-numeric: tabular-nums; }
+.offer__rows { display: grid; gap: 6px; }
+.offer__row { display: flex; justify-content: space-between; gap: 16px; }
+.offer__row > span:last-child {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;   /* текстовые значения («не определяется отдельно») должны переноситься */
+}
+.offer__breakdown { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.offer__source { display: grid; gap: 6px; }
+
+details.offer__details > summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: var(--md-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+details.offer__details > summary:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; border-radius: 4px; }
+
+/* --- График --- */
+
+.viz { display: grid; gap: 12px; }
+.viz__head { display: grid; gap: 4px; }
+.viz__plot {
+  position: relative;
+  background: var(--viz-surface);
+  border: 1px solid var(--md-outline-variant);
+  box-shadow: inset 0 1px 2px rgba(44, 53, 49, 0.04);
+  border-radius: var(--md-shape-sm);
+  padding: 8px 8px 0;
+}
+.viz__plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.viz__legend { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.viz__legend-item { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--md-on-surface-variant); }
+.viz__legend-mark { width: 16px; height: 3px; border-radius: 2px; flex: none; }
+.viz__legend-mark--dashed {
+  background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px) !important;
+  height: 3px;
+}
+
+.viz__tooltip {
+  position: absolute;
+  z-index: 5;
+  min-width: 180px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: var(--md-shape-sm);
+  background: var(--md-inverse-surface);
+  color: var(--md-inverse-on-surface);
+  box-shadow: var(--md-elev-2);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 90ms ease;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.viz__tooltip[data-visible="true"] { opacity: 1; }
+.viz__tooltip-title { font-weight: 500; margin-bottom: 6px; }
+.viz__tooltip-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.viz__tooltip-row > span:last-child { font-variant-numeric: tabular-nums; }
+.viz__tooltip-mark { width: 10px; height: 3px; border-radius: 2px; flex: none; }
+
+/* Текст на графике носит текстовые токены, а не цвет серии. */
+.viz text { font-family: var(--md-font); fill: var(--md-on-surface-variant); }
+.viz .viz-axis-label { font-size: 11px; }
+.viz .viz-series-label { font-size: 11px; font-weight: 500; }
+.viz .viz-annotation { font-size: 10px; }
+
+/* --- Страница источников --- */
+
+.source-card { display: grid; gap: 12px; }
+.source-card__head { display: flex; gap: 12px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.kv { display: grid; grid-template-columns: minmax(130px, max-content) 1fr; gap: 6px 16px; }
+.kv dt { color: var(--md-on-surface-variant); font-size: 0.8125rem; font-weight: 500; }
+.kv dd { margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; }
+.quote {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--md-primary);
+  background: var(--md-surface-container);
+  border-radius: 0 var(--md-shape-xs) var(--md-shape-xs) 0;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+.list-plain { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 0.875rem; }
+
+.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+.quote { border-left-color: var(--brand-teal); }
+
+@media (max-width: 560px) {
+  .page { padding: 16px 16px 56px; }
+  .md-segmented { width: 100%; }
+  .offer__row { flex-direction: column; gap: 2px; }
+  .offer__row > span:last-child { font-weight: 500; }
+  .kv { grid-template-columns: 1fr; gap: 2px; }
+  .kv dd { margin-bottom: 8px; }
+}

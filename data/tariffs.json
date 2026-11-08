@@ -1,0 +1,704 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "registry_compiled": "2026-11-08",
+    "primary_context": "online",
+    "primary_context_label": "Приём платежей на сайте (интернет-эквайринг)",
+    "merchant_profile": {
+      "activity": "Розничная интернет-торговля непродовольственными товарами",
+      "mcc_assumed": "5399",
+      "legal_form": "ООО / ИП, резидент РФ",
+      "note": "Вид деятельности зафиксирован, чтобы тарифы были сопоставимы. Льготные отраслевые ставки (ЖКХ, медицина, фастфуд и т. п.) к этому профилю не применяются."
+    },
+    "vat_regime": {
+      "rate_percent": 22.0,
+      "applies_from": "2026-01-01",
+      "base": "комиссия банка",
+      "card_payments": true,
+      "sbp_payments": false,
+      "note": "С 01.01.2026 комиссия за эквайринг облагается НДС 22%. По заявлениям обоих банков НДС начисляется только на операции по картам; платежи через СБП НДС не облагаются.",
+      "sources": ["tbank-vat-faq", "alfa-vat-faq"]
+    },
+    "data_access_limitation": {
+      "summary": "Сайты tbank.ru, alfabank.ru и uralsib.ru обслуживаются по сертификатам, выпущенным 'Russian Trusted Root CA' (Минцифры РФ). Этот корневой сертификат отсутствует в стандартных хранилищах доверия, поэтому автоматическая загрузка страниц возвращала ошибку проверки TLS (code 19, self-signed certificate in certificate chain).",
+      "consequence": "Данные Т-Банка и Альфа-Банка получены из датированных снимков Архива Интернета (web.archive.org), а не с живых страниц. Данные ЮKassa и Банка России получены напрямую.",
+      "required_manual_step": "Каждую ставку необходимо повторно сверить с живым официальным тарифным документом (PDF) перед сдачей работы. См. docs/registry.md, раздел 'Ручная доверификация'."
+    }
+  },
+
+  "reference_limits": [
+    {
+      "id": "cbr-sbp-c2b-limits",
+      "kind": "regulatory_ceiling",
+      "authority": "Банк России",
+      "title": "Предельные значения комиссии за переводы C2B в СБП",
+      "document": "Решение Совета директоров Банка России от 17.03.2023",
+      "url": "https://www.cbr.ru/about_br/dir/rsd_2023-03-17_45_01/",
+      "effective_from": "2023-05-01",
+      "accessed": "2026-11-08",
+      "verification": "live",
+      "groups": [
+        { "group": 1, "label": "Платежи в бюджет и госуслуги", "rate_percent": 0.0, "cap_rub": null, "quote": "0,00% от суммы перевода" },
+        { "group": 2, "label": "Медицина, благотворительность, транспорт, связь, образование", "rate_percent": 0.4, "cap_rub": 1500.0, "quote": "не более 0,40% от суммы перевода, но не более 1 500,00 руб. за перевод" },
+        { "group": 3, "label": "Прочие операции (в т. ч. розничная торговля)", "rate_percent": 0.7, "cap_rub": 1500.0, "quote": "0,70% от суммы перевода, но не более 1 500,00 руб. за перевод", "applies_to_our_profile": true },
+        { "group": 4, "label": "ЖКХ", "rate_percent": 0.2, "cap_rub": 10.0, "quote": "0,20% от суммы перевода, но не более 10,00 руб. за перевод" }
+      ],
+      "payer_fee_quote": "Комиссия с плательщика — физического лица: 0,00 руб.",
+      "needs_manual_verification": true,
+      "manual_verification_note": "Сверить состав групп по MCC с действующей редакцией решения: группы заданы перечнем MCC, и отнесение розничного интернет-магазина к группе 3 следует подтвердить по тексту документа."
+    }
+  ],
+
+  "offers": [
+    {
+      "id": "alfa-online-card-fixed",
+      "provider": "АО «Альфа-Банк»",
+      "provider_short": "Альфа-Банк",
+      "context": "online",
+      "product": "Интернет-эквайринг",
+      "plan": "Фиксированный",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": true,
+      "pricing": {
+        "model": "percent",
+        "rate_percent": 2.6,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0,
+        "per_operation_fee_rub": 0.0,
+        "cap_rub": null
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": {
+        "min_monthly_turnover_rub": 2000000.0,
+        "max_monthly_turnover_rub": null,
+        "turnover_scope": "оборот в месяц с одной торговой точки",
+        "notes": [
+          "Ставка 2,6% заявлена только для тарифа «Фиксированный» при обороте свыше 2 млн ₽ в месяц.",
+          "Срок зачисления для тарифа «Фиксированный» на странице указан как «на следующий день».",
+          "Банк прямо указывает, что предложение не является публичной офертой."
+        ]
+      },
+      "quotes": [
+        "При обороте бизнеса свыше 2 млн ₽ для тарифа «Фиксированный» комиссия 2,6% с каждого платежа.",
+        "Расчёт происходит по тарифам действительным на текущий день. Расчёты являются предварительными. Предложение не является публичной офертой"
+      ],
+      "source": {
+        "document": "Страница «Интернет-эквайринг» АО «Альфа-Банк»",
+        "url": "https://alfabank.ru/sme/payservice/internet-acquiring/",
+        "snapshot_url": "https://web.archive.org/web/20260612001923/https://alfabank.ru/sme/payservice/internet-acquiring/",
+        "snapshot_date": "2026-06-12",
+        "official_tariff_document": "Тарифы АО «АЛЬФА-БАНК» на обслуживание юридических лиц, индивидуальных предпринимателей по эквайрингу (действуют с 1.06.2026)",
+        "effective_from": "2026-06-01",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [
+        "Ставки для оборотов до 2 млн ₽ (интерактивный «подборщик» на странице не отдаёт данные: «Подборщик временно недоступен»).",
+        "Размер абонентской платы по тарифу «Фиксированный» — поле на странице есть, значение не опубликовано.",
+        "Отраслевая дифференциация ставок («комиссия отличается для разных отраслей бизнеса») без указания конкретных значений.",
+        "Условия возвратов (chargeback / refund) не опубликованы на странице."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "yookassa-online-card",
+      "provider": "ООО «НКО ЮMoney»",
+      "provider_short": "ЮKassa",
+      "context": "online",
+      "product": "Интернет-эквайринг (ЮKassa)",
+      "plan": "Тариф для новых клиентов",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": true,
+      "pricing": {
+        "model": "percent",
+        "rate_percent": 2.8,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0,
+        "per_operation_fee_rub": 0.0,
+        "cap_rub": null,
+        "optional_components": [
+          {
+            "id": "yookassa-receipts",
+            "label": "Чеки от ЮKassa",
+            "rate_percent": 1.0,
+            "default_enabled": false,
+            "note": "Опубликовано как «2,8% + 1% за чек». Что именно входит в компонент «1% за чек» и обязателен ли он, из страницы однозначно не следует — требует сверки с договором."
+          }
+        ]
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": {
+        "min_monthly_turnover_rub": null,
+        "max_monthly_turnover_rub": 5000000.0,
+        "turnover_scope": "оборот в месяц",
+        "notes": [
+          "Тариф заявлен для новых клиентов — ЮЛ и ИП РФ, регистрирующихся через страницу тарифов.",
+          "Срок действия предложения: с 28.01.2026 по 01.12.2026.",
+          "При обороте выше 5 млн ₽ в месяц условия рассчитываются индивидуально — расчёт по публичной ставке неприменим.",
+          "Ставки указаны без учёта НДС."
+        ]
+      },
+      "quotes": [
+        "Банковские карты — 2,8% + 1% за чек",
+        "Если ваш оборот выше 5 млн ₽ в месяц — рассчитаем индивидуально",
+        "без учёта НДС"
+      ],
+      "source": {
+        "document": "Страница тарифов ЮKassa",
+        "url": "https://yookassa.ru/fees",
+        "snapshot_url": null,
+        "snapshot_date": null,
+        "official_tariff_document": "Тарифы ЮKassa (страница /fees)",
+        "effective_from": "2026-01-28",
+        "effective_to": "2026-12-01",
+        "accessed": "2026-11-08",
+        "verification": "live"
+      },
+      "missing_parameters": [
+        "Ставки для действующих (не новых) клиентов.",
+        "Структура платы при обороте свыше 5 млн ₽ — только «рассчитаем индивидуально».",
+        "Абонентская плата и минимальный месячный платёж — на странице не заявлены (приняты равными 0, требует подтверждения договором)."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-online-card",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "online",
+      "product": "Интернет-эквайринг",
+      "plan": null,
+      "method": "card",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "indeterminate_rate",
+      "exclusion_text": "Ставка интернет-эквайринга на публичной странице тарифов не раскрыта числом: она определяется индивидуально, а в сторонних источниках приводится как «от 0,4%». Формулировка «от …» и индивидуальный расчёт не позволяют однозначно определить применимую ставку, а достраивать её собственными предположениями запрещено условиями работы.",
+      "pricing": null,
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "quotes": [
+        "Ставка по интернет-эквайрингу рассчитывается индивидуально (формулировка сторонних обзоров; на официальной странице тарифов торгового эквайринга числовая ставка интернет-эквайринга отсутствует)"
+      ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка (страница не содержит числовой ставки интернет-эквайринга)",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [
+        "Числовая ставка интернет-эквайринга.",
+        "Пороги по обороту для интернет-эквайринга.",
+        "Абонентская/пакетная плата для интернет-эквайринга."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "uralsib-online-card",
+      "provider": "ПАО «БАНК УРАЛСИБ»",
+      "provider_short": "Уралсиб",
+      "context": "online",
+      "product": "Интернет-эквайринг",
+      "plan": null,
+      "method": "card",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "no_verifiable_current_data",
+      "exclusion_text": "Живая страница недоступна для автоматической проверки (сертификат Russian Trusted Root CA не проходит проверку доверия), а в Архиве Интернета для раздела эквайринга есть только снимки 2021–2024 годов. Использовать ставку четырёхлетней давности как действующую нельзя, поэтому предложение исключено из расчёта до ручной сверки.",
+      "pricing": null,
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "quotes": [],
+      "source": {
+        "document": "Раздел «Эквайринг» ПАО «БАНК УРАЛСИБ»",
+        "url": "https://uralsib.ru/business/ekvayring/internet",
+        "snapshot_url": "https://web.archive.org/web/20240417154121/https://www.uralsib.ru/business/ekvayring/internet",
+        "snapshot_date": "2024-04-17",
+        "accessed": "2026-11-08",
+        "verification": "stale_snapshot"
+      },
+      "missing_parameters": [
+        "Действующая ставка по картам.",
+        "Действующая ставка СБП.",
+        "Абонентская плата.",
+        "Пороги по обороту."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "alfa-online-sbp",
+      "provider": "АО «Альфа-Банк»",
+      "provider_short": "Альфа-Банк",
+      "context": "online",
+      "product": "Система быстрых платежей",
+      "plan": null,
+      "method": "sbp",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "open_ended_rate",
+      "exclusion_text": "Ставка опубликована как «Комиссия от 0% для бизнеса». Формулировка «от …» задаёт только нижнюю границу и не определяет применимую ставку для нашего профиля, поэтому расчёт невозможен.",
+      "pricing": null,
+      "vat": { "applies": false, "rate_percent": 0.0, "base": null, "note": "Платежи через СБП НДС не облагаются." },
+      "quotes": [
+        "Система быстрых платежей — Комиссия от 0% для бизнеса",
+        "НДС облагаются только операции по картам. Платежи через СБП НДС не облагаются."
+      ],
+      "source": {
+        "document": "Страница «Интернет-эквайринг» АО «Альфа-Банк»",
+        "url": "https://alfabank.ru/sme/payservice/internet-acquiring/",
+        "snapshot_url": "https://web.archive.org/web/20260612001923/https://alfabank.ru/sme/payservice/internet-acquiring/",
+        "snapshot_date": "2026-06-12",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [
+        "Числовая ставка СБП для розничной интернет-торговли.",
+        "Зависимость ставки СБП от MCC / вида деятельности.",
+        "Наличие абонентской платы за СБП."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "yookassa-online-sbp",
+      "provider": "ООО «НКО ЮMoney»",
+      "provider_short": "ЮKassa",
+      "context": "online",
+      "product": "СБП в ЮKassa",
+      "plan": null,
+      "method": "sbp",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "individual_terms",
+      "exclusion_text": "На странице тарифов ставка СБП указана как «Рассчитаем индивидуально». Публичного числового значения нет, поэтому расчёт невозможен.",
+      "pricing": null,
+      "vat": { "applies": false, "rate_percent": 0.0, "base": null },
+      "quotes": [ "СБП — Рассчитаем индивидуально" ],
+      "source": {
+        "document": "Страница тарифов ЮKassa",
+        "url": "https://yookassa.ru/fees",
+        "snapshot_url": null,
+        "snapshot_date": null,
+        "accessed": "2026-11-08",
+        "verification": "live"
+      },
+      "missing_parameters": [ "Числовая ставка СБП.", "Пороги и условия её применения." ],
+      "needs_manual_verification": false
+    },
+
+    {
+      "id": "tbank-online-sbp",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "online",
+      "product": "Приём платежей по QR / СБП",
+      "plan": null,
+      "method": "sbp",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "rate_not_on_verified_page",
+      "exclusion_text": "На проверенной странице тарифов эквайринга числовая ставка СБП отсутствует — страница лишь указывает, что комиссия за платежи по QR-коду не учитывается в пакетах и минимальных платежах и что НДС на СБП не начисляется. Ставка публикуется на отдельной странице приёма платежей по QR, которую не удалось загрузить ни напрямую, ни из архива. Без подтверждённого числа расчёт невозможен.",
+      "pricing": null,
+      "vat": { "applies": false, "rate_percent": 0.0, "base": null, "note": "За приём платежей через T-Pay и СБП НДС не начисляется." },
+      "quotes": [
+        "Комиссия за платежи по QR-коду не учитывается.",
+        "За приём платежей через T-Pay и СБП не начисляем НДС."
+      ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Числовая ставка СБП / QR.", "Дифференциация ставки по видам деятельности." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "uralsib-online-sbp",
+      "provider": "ПАО «БАНК УРАЛСИБ»",
+      "provider_short": "Уралсиб",
+      "context": "online",
+      "product": "СБП",
+      "plan": null,
+      "method": "sbp",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "no_verifiable_current_data",
+      "exclusion_text": "Действующие условия не удалось получить: живая страница не проходит проверку TLS, в архиве — только снимки 2021–2022 годов.",
+      "pricing": null,
+      "vat": { "applies": false, "rate_percent": 0.0, "base": null },
+      "quotes": [],
+      "source": {
+        "document": "Раздел «СБП» ПАО «БАНК УРАЛСИБ»",
+        "url": "https://uralsib.ru/business/ekvayring/sbp",
+        "snapshot_url": "https://web.archive.org/web/20220721124211/https://www.uralsib.ru/business/ekvayring/sbp",
+        "snapshot_date": "2022-07-21",
+        "accessed": "2026-11-08",
+        "verification": "stale_snapshot"
+      },
+      "missing_parameters": [ "Действующая ставка СБП." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-percent-simple",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — процентная схема",
+      "plan": "Простой",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "Это ПОС-эквайринг (платежи в торговой точке). Не сопоставляется напрямую с онлайн-предложениями: контекст приёма платежей другой. Включено как справочная ветка и как материал для проверки логики пакетов, минимальных платежей и НДС.",
+      "pricing": {
+        "model": "percent_with_min",
+        "rate_percent": 2.69,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 1990.0,
+        "min_fee_scope": "per_terminal",
+        "per_operation_fee_rub": 0.0,
+        "cap_rub": null
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": {
+        "min_monthly_turnover_rub": null,
+        "max_monthly_turnover_rub": null,
+        "notes": [
+          "Привязано к тарифу расчётного счёта «Простой» (490 ₽/мес).",
+          "Лимитов по сумме платежей нет, есть минимальный платёж за каждый терминал.",
+          "Комиссия за платежи по QR-коду в минимальный платёж не учитывается."
+        ]
+      },
+      "quotes": [
+        "Комиссия 2,69% за операцию, без учета НДС — 1 990 ₽ за терминал. Минимальный платеж, цена указана без учета НДС",
+        "По нему он платит комиссию — 2,69% с каждой операции без учета НДС. С НДС комиссия 3,28%.",
+        "Если общая сумма комиссий по терминалам будет меньше 3 980 ₽, то к недостающей части добавим НДС и спишем эту сумму с расчетного счета. Комиссия за платежи по QR-коду не учитывается."
+      ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "official_tariff_document": "https://cdn.tbank.ru/static/documents/business-tariffs-all.pdf",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [
+        "Дата вступления в силу именно этой редакции ставок (на странице не указана)."
+      ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-percent-advanced",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — процентная схема",
+      "plan": "Продвинутый",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "ПОС-эквайринг, справочная ветка.",
+      "pricing": {
+        "model": "percent_with_min",
+        "rate_percent": 2.29,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 2690.0,
+        "min_fee_scope": "per_terminal",
+        "per_operation_fee_rub": 0.0,
+        "cap_rub": null
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": { "min_monthly_turnover_rub": null, "max_monthly_turnover_rub": null, "notes": ["Привязано к тарифу расчётного счёта «Продвинутый» (1 990 ₽/мес)."] },
+      "quotes": [ "Комиссия 2,29% за операцию, без учета НДС — 2 690 ₽ за терминал. Минимальный платеж, цена указана без учета НДС" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Дата вступления в силу редакции ставок." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-percent-pro",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — процентная схема",
+      "plan": "Профессиональный",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "ПОС-эквайринг, справочная ветка.",
+      "pricing": {
+        "model": "percent_with_min",
+        "rate_percent": 1.79,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 3990.0,
+        "min_fee_scope": "per_terminal",
+        "per_operation_fee_rub": 0.0,
+        "cap_rub": null
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": { "min_monthly_turnover_rub": null, "max_monthly_turnover_rub": null, "notes": ["Привязано к тарифу расчётного счёта «Профессиональный» (4 990 ₽/мес)."] },
+      "quotes": [ "Комиссия 1,79% за операцию, без учета НДС — 3 990 ₽ за терминал. Минимальный платеж, цена указана без учета НДС" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Дата вступления в силу редакции ставок." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-package-simple",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — пакетная схема",
+      "plan": "Простой",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "ПОС-эквайринг, справочная ветка. Демонстрирует пакетную (ступенчатую) плату.",
+      "pricing": {
+        "model": "package",
+        "package_size_rub": 100000.0,
+        "package_price_rub": 1990.0,
+        "package_scope": "per_terminal",
+        "rate_percent": null,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": {
+        "min_monthly_turnover_rub": null,
+        "max_monthly_turnover_rub": null,
+        "notes": [
+          "Пакет покупается на каждый терминал; лимит транзакций суммируется по всем терминалам.",
+          "При превышении лимита списывается плата за новый пакет и лимит увеличивается на размер пакета.",
+          "Платежи по QR-коду в лимит пакета не учитываются."
+        ]
+      },
+      "quotes": [
+        "Размер пакета 100 000 ₽ — 1 990 ₽/пакет. Без учета НДС",
+        "Например, у ИП два терминала на тарифе «Простой». К ним он покупает два пакета — 1 990 × 2 = 3 980 ₽. К этой сумме добавляется НДС 22%, итоговая стоимость: 3 980 + 22% = 4 855,6 ₽.",
+        "Сумма транзакций для терминалов общая — 100 000 × 2 = 200 000 ₽. Когда платежи по ним превысят эту сумму, спишется еще 2 427,8 ₽ — стоимость одного дополнительного пакета с НДС 22%. После этого добавится лимит 100 000 ₽. Платежи по QR-коду не учитываются."
+      ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Дата вступления в силу редакции ставок." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-package-advanced",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — пакетная схема",
+      "plan": "Продвинутый",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "ПОС-эквайринг, справочная ветка.",
+      "pricing": {
+        "model": "package",
+        "package_size_rub": 150000.0,
+        "package_price_rub": 2690.0,
+        "package_scope": "per_terminal",
+        "rate_percent": null,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": { "min_monthly_turnover_rub": null, "max_monthly_turnover_rub": null, "notes": ["Платежи по QR-коду в лимит пакета не учитываются."] },
+      "quotes": [ "Размер пакета 150 000 ₽ — 2 690 ₽/пакет. Без учета НДС" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Дата вступления в силу редакции ставок." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-package-pro",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — пакетная схема",
+      "plan": "Профессиональный",
+      "method": "card",
+      "status": "computable",
+      "in_primary_comparison": false,
+      "out_of_context_note": "ПОС-эквайринг, справочная ветка.",
+      "pricing": {
+        "model": "package",
+        "package_size_rub": 250000.0,
+        "package_price_rub": 3990.0,
+        "package_scope": "per_terminal",
+        "rate_percent": null,
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "applicability": { "min_monthly_turnover_rub": null, "max_monthly_turnover_rub": null, "notes": ["Платежи по QR-коду в лимит пакета не учитываются."] },
+      "quotes": [ "Размер пакета 250 000 ₽ — 3 990 ₽/пакет. Без учета НДС" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Дата вступления в силу редакции ставок." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-promo-supermarket",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — акция, категория «Супермаркеты»",
+      "plan": "Акция (процентная схема)",
+      "method": "card",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "category_mismatch",
+      "exclusion_text": "Льготная ставка привязана к категории «Супермаркеты», которая не соответствует выбранному профилю продавца (розничная интернет-торговля непродовольственными товарами). Переносить её на наш профиль нельзя. Приведено в реестре как пример порогового тарифа: 1,7% при обороте от 500 000 ₽ и 2% при обороте до 500 000 ₽ или в первый месяц.",
+      "pricing": {
+        "model": "percent_tiered",
+        "tiers": [
+          { "min_monthly_turnover_rub": 500000.0, "rate_percent": 1.7, "label": "при обороте от 500 000 ₽" },
+          { "min_monthly_turnover_rub": 0.0, "max_monthly_turnover_rub": 500000.0, "rate_percent": 2.0, "label": "в первый месяц подключения и при обороте до 500 000 ₽" }
+        ],
+        "fixed_monthly_fee_rub": 0.0,
+        "min_monthly_fee_rub": 0.0
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "quotes": [ "Супермаркеты — 1,7% — при обороте от 500 000 ₽; 2% — в первый месяц подключения и при обороте до 500 000 ₽. Размер комиссии указан без учета НДС" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка, раздел «Акция на тарифы для процентной схемы»",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Срок действия акции.", "Точный перечень MCC, попадающих в категорию." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-promo-pharmacy-clinic",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — акция, категории «Клиники и аптеки»",
+      "plan": "Акция (процентная схема)",
+      "method": "card",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "category_mismatch",
+      "exclusion_text": "Ставки 1,2% (больницы), 1,4% (стоматологии), 1,6% (аптеки) привязаны к медицинским категориям и не применимы к выбранному профилю продавца.",
+      "pricing": {
+        "model": "percent_by_category",
+        "categories": [
+          { "label": "больницы", "rate_percent": 1.2 },
+          { "label": "стоматологии", "rate_percent": 1.4 },
+          { "label": "аптеки", "rate_percent": 1.6 }
+        ]
+      },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "quotes": [ "Клиники и аптеки — 1,2% — для больниц; 1,4% — для стоматологий; 1,6% — для аптек" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка, раздел «Акция на тарифы для процентной схемы»",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Срок действия акции.", "Перечень MCC." ],
+      "needs_manual_verification": true
+    },
+
+    {
+      "id": "tbank-pos-promo-fastfood",
+      "provider": "АО «ТБанк»",
+      "provider_short": "Т-Банк",
+      "context": "pos",
+      "product": "Торговый эквайринг — акция, категория «Фастфуд»",
+      "plan": "Акция (процентная схема)",
+      "method": "card",
+      "status": "excluded",
+      "in_primary_comparison": false,
+      "exclusion_reason": "category_mismatch",
+      "exclusion_text": "Ставка 1,5% привязана к категории «Фастфуд: кофейня, столовая или кафе» и не применима к выбранному профилю продавца.",
+      "pricing": { "model": "percent", "rate_percent": 1.5, "fixed_monthly_fee_rub": 0.0, "min_monthly_fee_rub": 0.0 },
+      "vat": { "applies": true, "rate_percent": 22.0, "base": "commission" },
+      "quotes": [ "Фастфуд: кофейня, столовая или кафе — 1,5% без ограничений по обороту" ],
+      "source": {
+        "document": "Тарифы и условия торгового эквайринга Т-Банка, раздел «Акция на тарифы для процентной схемы»",
+        "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+        "snapshot_date": "2026-10-04",
+        "accessed": "2026-11-08",
+        "verification": "snapshot"
+      },
+      "missing_parameters": [ "Срок действия акции.", "Перечень MCC." ],
+      "needs_manual_verification": true
+    }
+  ],
+
+  "vat_sources": [
+    {
+      "id": "tbank-vat-faq",
+      "provider": "АО «ТБанк»",
+      "quote": "С 1 января 2026 года НДС 22% начисляется на комиссию за прием платежей с помощью торгового и интернет-эквайринга. За прием платежей через T-Pay и СБП не начисляем НДС. Сумма налога списывается вместе с комиссией за эквайринг. Размеры комиссий за прием платежей на этой странице указаны без НДС.",
+      "url": "https://www.tbank.ru/business/payments/acquiring/tariffs/",
+      "snapshot_url": "https://web.archive.org/web/20261004095937/https://www.tbank.ru/business/payments/acquiring/tariffs/",
+      "accessed": "2026-11-08"
+    },
+    {
+      "id": "alfa-vat-faq",
+      "provider": "АО «Альфа-Банк»",
+      "quote": "С 1 января 2026 года вступает в силу изменение налогового законодательства: комиссия банков за приём платежей с помощью интернет-эквайринга будет облагаться НДС 22%. Это касается всех банков и платёжных сервисов. Для бизнеса тарифная ставка по договору НЕ меняется. Но к комиссии банка будет дополнительно начисляться НДС в размере 22%. НДС облагаются только операции по картам. Платежи через СБП НДС не облагаются.",
+      "worked_example": "Сумма операций по оплате картой — 1000 ₽, комиссия банка по договору — 2,6%, НДС — 22%. Комиссия банка по договору — 1000 × 2,6% = 26 ₽. НДС — 26 × 22% = 5,72 ₽. Итого, удержанная сумма с учётом НДС — 31,72 ₽.",
+      "url": "https://alfabank.ru/sme/payservice/internet-acquiring/",
+      "snapshot_url": "https://web.archive.org/web/20260612001923/https://alfabank.ru/sme/payservice/internet-acquiring/",
+      "accessed": "2026-11-08"
+    }
+  ]
+}

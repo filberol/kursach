@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Стоимость приёма платежей</title>
+<meta name="description" content="Расчёт стоимости приёма платежей по картам и через СБП по открытым тарифам с указанием источника каждого результата.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/m3.css">
+<link rel="stylesheet" href="./styles/app.css">
+</head>
+<body>
+
+<header class="md-top-bar">
+  <h1 class="md-top-bar__title md-title-large">Стоимость приёма платежей</h1>
+  <nav class="md-top-bar__nav" aria-label="Разделы">
+    <a class="md-button md-button--tonal" href="./index.html" aria-current="page">Калькулятор</a>
+    <a class="md-button md-button--text" href="./sources.html">Источники</a>
+  </nav>
+</header>
+
+<main class="page stack">
+
+  <section class="hero">
+    <p class="md-label-medium md-muted" id="context-line">Контекст сопоставления загружается…</p>
+    <p class="md-body-medium md-muted" id="profile-line"></p>
+  </section>
+
+  <div class="md-banner md-banner--info" role="note">
+    <div class="stack stack--tight">
+      <p class="md-title-small" style="margin:0">Граница выводов</p>
+      <p class="md-body-medium" style="margin:0">
+        Сервис сравнивает только <strong>публично описанные условия</strong>. Он не утверждает, какой способ
+        оплаты выгоднее конкретному магазину: для этого нужны его договоры, структура продаж и данные о
+        поведении покупателей. Введённые суммы — это <strong>аргументы расчёта</strong>, а не статистика бизнеса.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= Параметры ================= -->
+  <section class="md-card md-card--elevated stack" aria-labelledby="params-h">
+    <h2 class="md-headline-small" id="params-h" style="margin:0">Параметры платежа</h2>
+
+    <div class="control-row">
+      <div>
+        <p class="md-label-medium md-muted" id="ctx-label" style="margin:0 0 6px">Где принимаются платежи</p>
+        <div class="md-segmented" role="radiogroup" aria-labelledby="ctx-label" id="ctx-group">
+          <button class="md-segmented__item" type="button" role="radio" data-value="online" aria-checked="true">На сайте</button>
+          <button class="md-segmented__item" type="button" role="radio" data-value="pos" aria-checked="false">В торговой точке</button>
+        </div>
+      </div>
+
+      <div id="scheme-wrap" hidden>
+        <p class="md-label-medium md-muted" id="scheme-label" style="margin:0 0 6px">Схема тарифа</p>
+        <div class="md-segmented" role="radiogroup" aria-labelledby="scheme-label" id="scheme-group">
+          <button class="md-segmented__item" type="button" role="radio" data-value="percent" aria-checked="true">Процентная</button>
+          <button class="md-segmented__item" type="button" role="radio" data-value="package" aria-checked="false">Пакетная</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="md-label-medium md-muted" id="method-label" style="margin:0 0 6px">Способ оплаты</p>
+        <div class="md-segmented" role="radiogroup" aria-labelledby="method-label" id="method-group">
+          <button class="md-segmented__item" type="button" role="radio" data-value="card" aria-checked="true">Карты</button>
+          <button class="md-segmented__item" type="button" role="radio" data-value="sbp" aria-checked="false">СБП</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-grid">
+      <label class="md-field">
+        <input class="md-field__input" id="amount" type="number" min="1" step="100" value="1000" inputmode="decimal">
+        <span class="md-field__label">Сумма одного платежа, ₽</span>
+      </label>
+
+      <label class="md-field">
+        <input class="md-field__input" id="turnover" type="number" min="0" step="10000" value="2000000" inputmode="decimal">
+        <span class="md-field__label">Оборот за месяц, ₽</span>
+      </label>
+
+      <label class="md-field" id="terminals-field" hidden>
+        <input class="md-field__input" id="terminals" type="number" min="1" step="1" value="1" inputmode="numeric">
+        <span class="md-field__label">Число терминалов</span>
+      </label>
+    </div>
+
+    <div class="control-row">
+      <label class="md-switch">
+        <input type="checkbox" id="vat-toggle" checked>
+        <span class="md-switch__track"><span class="md-switch__thumb"></span></span>
+        <span class="md-label-large">Показывать суммы с НДС</span>
+      </label>
+
+      <label class="md-switch" id="receipts-wrap">
+        <input type="checkbox" id="yk-receipts">
+        <span class="md-switch__track"><span class="md-switch__thumb"></span></span>
+        <span class="md-label-large">ЮKassa: «Чеки от ЮKassa» (+1% за чек)</span>
+      </label>
+    </div>
+  </section>
+
+  <!-- ================= Результаты ================= -->
+  <section class="stack" aria-labelledby="results-h">
+    <h2 class="md-headline-small" id="results-h" style="margin:0">Расчёт по опубликованным условиям</h2>
+    <div class="results-grid" id="results"></div>
+  </section>
+
+  <!-- ================= Предел Банка России ================= -->
+  <section id="ceiling-section" class="stack" aria-labelledby="ceiling-h"></section>
+
+  <!-- ================= Визуализация ================= -->
+  <section class="md-card md-card--outlined viz" aria-labelledby="chart1-h">
+    <div class="viz__head">
+      <h2 class="md-title-large" id="chart1-h" style="margin:0">Как меняется стоимость при росте оборота</h2>
+      <p class="md-body-small md-muted" id="chart1-sub" style="margin:0"></p>
+    </div>
+    <div class="viz__plot" id="chart1"></div>
+    <div class="viz__legend" id="chart1-legend"></div>
+    <details class="offer__details">
+      <summary>Показать те же данные таблицей</summary>
+      <div class="md-table-wrap" style="margin-top:12px"><table class="md-table" id="chart1-table"></table></div>
+    </details>
+  </section>
+
+  <section class="md-card md-card--outlined viz" aria-labelledby="chart2-h">
+    <div class="viz__head">
+      <h2 class="md-title-large" id="chart2-h" style="margin:0">Комиссия за один платёж и предел Банка России</h2>
+      <p class="md-body-small md-muted" id="chart2-sub" style="margin:0"></p>
+    </div>
+    <div class="viz__plot" id="chart2"></div>
+    <div class="viz__legend" id="chart2-legend"></div>
+    <details class="offer__details">
+      <summary>Показать те же данные таблицей</summary>
+      <div class="md-table-wrap" style="margin-top:12px"><table class="md-table" id="chart2-table"></table></div>
+    </details>
+  </section>
+
+  <!-- ================= Исключённые предложения ================= -->
+  <section class="stack" aria-labelledby="excluded-h">
+    <h2 class="md-headline-small" id="excluded-h" style="margin:0">Почему часть предложений не считается</h2>
+    <p class="md-body-medium md-muted" style="margin:0">
+      Предложения со ставкой «от …», индивидуальными условиями или неясной категорией деятельности
+      не достраиваются предположениями. Ниже — причина по каждому.
+    </p>
+    <div class="results-grid" id="excluded"></div>
+  </section>
+
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

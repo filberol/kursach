@@ -1,0 +1,370 @@
+/* ==========================================================================
+   Material Design 3 — токены и компоненты (ручная реализация, без зависимостей).
+   Схема построена на базовой палитре M3; акцент UI (фиолетовый) намеренно
+   отличается от цветов серий на графиках, чтобы они не путались.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- Фирменная палитра --------------------------------------------------
+     #2C3531  тёмный графит-зелёный — текст и акцентные границы
+     #116466  глубокий бирюзовый    — основной цвет интерфейса
+     #D9B08C  песочный              — тёплый акцент
+     #FFCB9A  персиковый            — тёплая подложка (предупреждения, отказы)
+     #D1E8E2  мятный                — холодная подложка (контейнеры, заметки)
+     Остальные значения — производные тона тех же цветов.
+     ---------------------------------------------------------------------- */
+
+  --brand-graphite: #2c3531;
+  --brand-teal: #116466;
+  --brand-sand: #d9b08c;
+  --brand-peach: #ffcb9a;
+  --brand-mint: #d1e8e2;
+
+  --md-primary: var(--brand-teal);
+  --md-on-primary: #ffffff;
+  --md-primary-container: var(--brand-mint);
+  --md-on-primary-container: #0b3f40;
+  --md-secondary: #44615f;
+  --md-secondary-container: var(--brand-mint);
+  --md-on-secondary-container: #0b3f40;
+  --md-tertiary-container: var(--brand-peach);
+  --md-on-tertiary-container: #4a2f12;
+
+  --md-error: var(--brand-graphite);
+  --md-on-error: #ffffff;
+  --md-error-container: var(--brand-peach);
+  --md-on-error-container: #42301c;
+
+  --md-surface: var(--brand-mint);            /* фон страницы */
+  --md-on-surface: var(--brand-graphite);
+  --md-surface-variant: #e3f0ec;
+  --md-on-surface-variant: #55635f;
+  --md-surface-container-lowest: #ffffff;    /* карточки */
+  --md-surface-container-low: #ffffff;
+  --md-surface-container: #ffffff;
+  --md-surface-container-high: #eaf4f1;      /* шапки таблиц, вложенные блоки */
+  --md-surface-container-highest: #dceae7;
+  --md-outline: #7fa5a0;
+  --md-outline-variant: #a9ccc5;             /* видимая граница карточки */
+  --md-inverse-surface: var(--brand-graphite);
+  --md-inverse-on-surface: #f2f9f7;
+  --md-scrim: rgba(44, 53, 49, 0.32);
+
+  --md-success: #1b6b3a;
+  --md-success-container: var(--brand-mint);
+  --md-on-success-container: #0b3f40;
+  --md-warning: var(--brand-sand);
+  --md-warning-container: var(--brand-peach);
+  --md-on-warning-container: #42301c;
+
+  /* --- Поверхность и серии графиков ---------------------------------------
+     Цвета серий НЕ берутся из фирменной палитры напрямую: её тона слишком
+     светлые и малонасыщенные для линий на графике. Взяты те же семейства
+     оттенков (бирюза, тёплый оранжевый) плюс третий тон, и набор проверен
+     валидатором на различимость, в том числе при дальтонизме:
+     худшая пара — ΔE 11,0 (deutan) и 22,5 при обычном зрении.
+     ---------------------------------------------------------------------- */
+  --viz-surface: #ffffff;
+  --viz-series-1: #009a94;
+  --viz-series-2: #bc6318;
+  --viz-series-3: #8e4fa8;
+  --viz-grid: #d8e9e5;
+  --viz-reference: #6c7b77;
+
+  --md-shape-xs: 4px;
+  --md-shape-sm: 8px;
+  --md-shape-md: 12px;
+  --md-shape-lg: 16px;
+  --md-shape-xl: 28px;
+  --md-shape-full: 999px;
+
+  --md-elev-1: 0 1px 2px rgba(44, 53, 49, 0.10), 0 2px 8px rgba(44, 53, 49, 0.08);
+  --md-elev-2: 0 2px 4px rgba(44, 53, 49, 0.12), 0 4px 14px rgba(44, 53, 49, 0.10);
+  --md-elev-3: 0 4px 8px 3px rgba(44, 53, 49, 0.1), 0 1px 3px rgba(44, 53, 49, 0.14);
+
+  --md-font: Roboto, "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+/* ========================= База ========================= */
+
+* { box-sizing: border-box; }
+
+/* Атрибут hidden должен побеждать авторские display-правила компонентов
+   (например, .md-field { display: block }), иначе скрытые поля остаются видимыми. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--md-font);
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===================== Типографика M3 ===================== */
+
+.md-display-small { font-size: 2.25rem; line-height: 2.75rem; font-weight: 400; letter-spacing: 0; }
+.md-headline-medium { font-size: 1.75rem; line-height: 2.25rem; font-weight: 400; }
+.md-headline-small { font-size: 1.5rem; line-height: 2rem; font-weight: 400; }
+.md-title-large { font-size: 1.375rem; line-height: 1.75rem; font-weight: 400; }
+.md-title-medium { font-size: 1rem; line-height: 1.5rem; font-weight: 500; letter-spacing: 0.009375em; }
+.md-title-small { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; letter-spacing: 0.00625em; }
+.md-body-large { font-size: 1rem; line-height: 1.5rem; font-weight: 400; letter-spacing: 0.03125em; }
+.md-body-medium { font-size: 0.875rem; line-height: 1.25rem; font-weight: 400; letter-spacing: 0.015625em; }
+.md-body-small { font-size: 0.75rem; line-height: 1rem; font-weight: 400; letter-spacing: 0.025em; }
+.md-label-large { font-size: 0.875rem; line-height: 1.25rem; font-weight: 500; letter-spacing: 0.00625em; }
+.md-label-medium { font-size: 0.75rem; line-height: 1rem; font-weight: 500; letter-spacing: 0.03125em; }
+.md-label-small { font-size: 0.6875rem; line-height: 1rem; font-weight: 500; letter-spacing: 0.03125em; }
+
+.md-muted { color: var(--md-on-surface-variant); }
+
+/* ===================== Top app bar ===================== */
+
+.md-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 8px 16px;
+  background: var(--brand-teal);
+  color: #ffffff;
+  box-shadow: var(--md-elev-2);
+  flex-wrap: wrap;
+}
+.md-top-bar .md-button--text { color: #ffffff; }
+.md-top-bar .md-button--tonal { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+.md-top-bar .md-button:focus-visible { outline-color: #ffffff; }
+
+.md-top-bar__title { margin: 0; flex: 1 1 260px; min-width: 0; }
+.md-top-bar__nav { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+
+/* ===================== Кнопки ===================== */
+
+.md-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 24px;
+  border: none;
+  border-radius: var(--md-shape-full);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.00625em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 120ms ease, background-color 120ms ease;
+  overflow: hidden;
+}
+.md-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.md-button:hover::before { opacity: 0.08; }
+.md-button:focus-visible::before { opacity: 0.12; }
+.md-button:active::before { opacity: 0.12; }
+.md-button:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+
+.md-button--filled { background: var(--md-primary); color: var(--md-on-primary); }
+.md-button--tonal { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+.md-button--outlined { background: transparent; color: var(--md-primary); border: 1px solid var(--md-outline); }
+.md-button--text { background: transparent; color: var(--md-primary); padding: 0 12px; }
+
+/* ===================== Карточки ===================== */
+
+.md-card {
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-md);
+  padding: 20px;
+}
+/* Карточка всегда светлее фона страницы — иначе панели сливаются с подложкой. */
+.md-card--elevated { box-shadow: var(--md-elev-1); }
+.md-card--outlined { box-shadow: var(--md-elev-1); }
+.md-card--filled { background: var(--md-surface-container-high); }
+
+/* ===================== Текстовое поле (outlined) ===================== */
+
+.md-field { position: relative; display: block; }
+.md-field__input {
+  width: 100%;
+  min-height: 56px;
+  padding: 18px 16px 6px;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--md-on-surface);
+  background: transparent;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-shape-xs);
+  transition: border-color 120ms ease, border-width 120ms ease;
+}
+.md-field__input:hover { border-color: var(--md-on-surface); }
+.md-field__input:focus {
+  outline: none;
+  border-color: var(--md-primary);
+  box-shadow: inset 0 0 0 1px var(--md-primary);
+}
+.md-field__label {
+  position: absolute;
+  top: 6px;
+  left: 13px;
+  padding: 0 4px;
+  background: var(--md-surface-container-lowest);
+  color: var(--md-on-surface-variant);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+.md-field__input:focus + .md-field__label { color: var(--md-primary); }
+.md-field__help { display: block; margin: 4px 16px 0; color: var(--md-on-surface-variant); }
+
+/* ===================== Segmented buttons ===================== */
+
+.md-segmented {
+  display: inline-flex;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-shape-full);
+  overflow: hidden;
+  max-width: 100%;
+}
+.md-segmented__item {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-left: 1px solid var(--md-outline);
+  background: transparent;
+  color: var(--md-on-surface);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.md-segmented__item:first-child { border-left: none; }
+.md-segmented__item:hover { background: color-mix(in srgb, var(--md-on-surface) 8%, transparent); }
+.md-segmented__item[aria-pressed="true"],
+.md-segmented__item[aria-checked="true"] {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+.md-segmented__item:focus-visible { outline: 3px solid var(--md-primary); outline-offset: -3px; }
+
+/* ===================== Switch ===================== */
+
+.md-switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; }
+.md-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.md-switch__track {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  border-radius: var(--md-shape-full);
+  background: var(--md-surface-variant);
+  border: 2px solid var(--md-outline);
+  transition: background-color 120ms ease, border-color 120ms ease;
+  flex: none;
+}
+.md-switch__thumb {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--md-outline);
+  transform: translateY(-50%);
+  transition: left 120ms ease, width 120ms ease, height 120ms ease, background-color 120ms ease;
+}
+.md-switch input:checked + .md-switch__track { background: var(--md-primary); border-color: var(--md-primary); }
+.md-switch input:checked + .md-switch__track .md-switch__thumb {
+  left: 26px; width: 24px; height: 24px; background: var(--md-on-primary);
+}
+.md-switch input:focus-visible + .md-switch__track { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+
+/* ===================== Ссылки оглавления ===================== */
+
+.toc__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-full);
+  background: var(--md-surface-container-lowest);
+  color: var(--md-primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.toc__link:hover { background: var(--md-primary-container); border-color: var(--md-primary); }
+.toc__link:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+
+/* ===================== Баннер ===================== */
+
+.md-banner {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--md-shape-md);
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  border-left: 4px solid var(--md-outline);
+}
+/* Холодная подложка — пояснения и заметки. */
+.md-banner--info {
+  background: var(--md-surface-container-lowest);
+  color: var(--md-on-surface);
+  border-left-color: var(--brand-teal);
+  box-shadow: var(--md-elev-1);
+}
+/* Тёплая подложка — то, что требует внимания: отказ в расчёте,
+   неприменимая ставка, ограничение доступа к данным. */
+.md-banner--warning,
+.md-banner--error {
+  background: var(--brand-peach);
+  color: var(--md-on-error-container);
+  border-left-color: var(--brand-graphite);
+  box-shadow: var(--md-elev-1);
+}
+.md-banner--error { border-left-color: var(--brand-sand); }
+
+/* ===================== Таблица ===================== */
+
+.md-table-wrap { overflow-x: auto; border-radius: var(--md-shape-md); border: 1px solid var(--md-outline-variant); background: var(--md-surface-container-lowest); }
+.md-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 480px; }
+.md-table th, .md-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--md-outline-variant);
+  vertical-align: top;
+}
+.md-table th { font-weight: 500; color: var(--md-on-surface-variant); background: var(--md-surface-container-high); white-space: nowrap; }
+.md-table tbody tr:last-child td { border-bottom: none; }
+.md-table td.num, .md-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ===================== Divider / утилиты ===================== */
+
+.md-divider { height: 1px; background: var(--md-outline-variant); border: none; margin: 0; }
+.md-link { color: var(--md-primary); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.md-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

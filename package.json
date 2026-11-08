@@ -1,0 +1,16 @@
+{
+  "name": "acquiring-tariff-compare",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Сервис сравнения открытых условий приёма платежей по картам и через СБП",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node tools/build.mjs",
+    "checks": "node tools/export-checks.mjs",
+    "docs": "node tools/gen-docs.mjs",
+    "dev": "node tools/build.mjs && node --run serve",
+    "serve": "node tools/serve.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

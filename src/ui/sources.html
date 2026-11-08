@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Реестр источников</title>
+<meta name="description" content="Реестр рассмотренных тарифных предложений: ссылки на документы, даты действия и обращения, условия применения и причины исключения.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles/m3.css">
+<link rel="stylesheet" href="./styles/app.css">
+</head>
+<body>
+
+<header class="md-top-bar">
+  <h1 class="md-top-bar__title md-title-large">Реестр источников</h1>
+  <nav class="md-top-bar__nav" aria-label="Разделы">
+    <a class="md-button md-button--text" href="./index.html">Калькулятор</a>
+    <a class="md-button md-button--tonal" href="./sources.html" aria-current="page">Источники</a>
+  </nav>
+</header>
+
+<main class="page stack">
+
+  <section class="hero">
+    <p class="md-body-large" style="margin:0">
+      Каждый результат расчёта на этой странице можно проследить до документа: ниже указаны ссылка,
+      дата действия, дата обращения, способ проверки, дословные цитаты и перечень параметров,
+      которых не хватает для расчёта.
+    </p>
+  </section>
+
+  <nav class="toc" aria-label="Содержание">
+    <a class="toc__link" href="#limitation">Ограничение доступа к данным</a>
+    <a class="toc__link" href="#ceiling">Предел Банка России</a>
+    <a class="toc__link" href="#summary">Сводная таблица</a>
+    <a class="toc__link" href="#included">В сопоставлении</a>
+    <a class="toc__link" href="#reference">Справочные (другой контекст)</a>
+    <a class="toc__link" href="#excluded">Исключённые</a>
+    <a class="toc__link" href="#vat">НДС</a>
+    <a class="toc__link" href="#todo">Ручная доверификация</a>
+  </nav>
+
+  <section id="limitation" class="stack" aria-labelledby="limitation-h">
+    <h2 class="md-headline-small" id="limitation-h" style="margin:0">Ограничение доступа к данным</h2>
+    <div id="limitation-body" class="stack stack--tight"></div>
+  </section>
+
+  <section id="ceiling" class="stack" aria-labelledby="ceiling-h2">
+    <h2 class="md-headline-small" id="ceiling-h2" style="margin:0">Предельные значения Банка России</h2>
+    <div id="ceiling-body" class="stack stack--tight"></div>
+  </section>
+
+  <section id="summary" class="stack" aria-labelledby="summary-h">
+    <h2 class="md-headline-small" id="summary-h" style="margin:0">Сводная таблица рассмотренных предложений</h2>
+    <p class="md-body-medium md-muted" style="margin:0" id="summary-count"></p>
+    <div class="md-table-wrap"><table class="md-table" id="summary-table"></table></div>
+  </section>
+
+  <section id="included" class="stack" aria-labelledby="included-h">
+    <h2 class="md-headline-small" id="included-h" style="margin:0">Предложения в основном сопоставлении</h2>
+    <div class="stack" id="included-body"></div>
+  </section>
+
+  <section id="reference" class="stack" aria-labelledby="reference-h">
+    <h2 class="md-headline-small" id="reference-h" style="margin:0">Расчётные, но вне основного контекста</h2>
+    <p class="md-body-medium md-muted" style="margin:0">
+      Условия определимы однозначно, но относятся к другому контексту приёма платежей,
+      поэтому напрямую с основным сопоставлением не складываются.
+    </p>
+    <div class="stack" id="reference-body"></div>
+  </section>
+
+  <section id="excluded" class="stack" aria-labelledby="excluded-h2">
+    <h2 class="md-headline-small" id="excluded-h2" style="margin:0">Исключённые из расчёта и почему</h2>
+    <div class="stack" id="excluded-body"></div>
+  </section>
+
+  <section id="vat" class="stack" aria-labelledby="vat-h">
+    <h2 class="md-headline-small" id="vat-h" style="margin:0">НДС: режим и подтверждения</h2>
+    <div class="stack stack--tight" id="vat-body"></div>
+  </section>
+
+  <section id="todo" class="stack" aria-labelledby="todo-h">
+    <h2 class="md-headline-small" id="todo-h" style="margin:0">Ручная доверификация</h2>
+    <div class="stack stack--tight" id="todo-body"></div>
+  </section>
+
+</main>
+
+<script type="module" src="./sources.js"></script>
+</body>
+</html>
