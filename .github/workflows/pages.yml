@@ -61,12 +61,12 @@ jobs:
       - name: Сборка статики
         run: npm run build
 
-      # enablement: true включает GitHub Pages через API, если он ещё не включён
-      # в настройках репозитория. Без этого первый запуск падает с «Get Pages
-      # site failed … Not Found», потому что сайта ещё не существует.
+      # ВАЖНО: Pages нужно один раз включить вручную —
+      #   Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+      # Сделать это из workflow нельзя: токен GITHUB_TOKEN не имеет права
+      # создавать Pages-сайт («Resource not accessible by integration»),
+      # поэтому enablement: true здесь не помогает.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
