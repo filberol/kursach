@@ -17,6 +17,15 @@ export function findOffer(registry, id) {
   return offer;
 }
 
+/** Группа предельных значений Банка России, применимая к выбранному профилю. */
+export function findProfileCeilingGroup(registry) {
+  const limits = registry.reference_limits?.find((l) => l.id === 'cbr-sbp-c2b-limits');
+  if (!limits) throw new Error('В реестре нет предельных значений Банка России');
+  const group = limits.groups.find((g) => g.applies_to_our_profile);
+  if (!group) throw new Error('В реестре не отмечена группа, применимая к профилю продавца');
+  return group;
+}
+
 /** Группа предельных значений Банка России по номеру. */
 export function findCeilingGroup(registry, groupNumber) {
   const limits = registry.reference_limits?.find((l) => l.id === 'cbr-sbp-c2b-limits');
@@ -66,6 +75,15 @@ export function validateRegistry(reg) {
       if (['percent', 'percent_with_min'].includes(o.pricing?.model)) {
         if (!(o.pricing.rate_percent > 0)) problems.push(`${where}: некорректная ставка`);
       }
+    }
+  }
+
+  // Предел регулятора должен быть привязан к группе, применимой к профилю:
+  // иначе он не с чем сопоставляется.
+  for (const l of reg.reference_limits || []) {
+    if (l.kind !== 'regulatory_ceiling') continue;
+    if (!(l.groups || []).some((g) => g.applies_to_our_profile)) {
+      problems.push(`reference_limit «${l.id}»: не отмечена группа, применимая к профилю продавца`);
     }
   }
 

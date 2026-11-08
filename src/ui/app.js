@@ -1,7 +1,7 @@
 /** Контроллер калькулятора. */
 
 import { calculateOffer, regulatoryCeiling, Verdict, round2 } from '../core/calc.js';
-import { loadRegistry, findCeilingGroup } from '../core/registry.js';
+import { loadRegistry, findProfileCeilingGroup } from '../core/registry.js';
 import { renderLineChart, renderLegend } from './chart.js';
 import { money, moneyShort, moneyAxis, percent, date, VERIFICATION_TEXT } from './format.js';
 
@@ -241,7 +241,10 @@ function offerCard(result, color) {
   const per = document.createElement('p');
   per.className = 'md-body-medium md-muted';
   per.style.margin = '0';
-  per.textContent = `за месяц ${state.showVat ? 'с НДС' : 'без НДС'}`;
+  // Для СБП НДС не начисляется, поэтому приписка «с НДС» была бы неверной.
+  per.textContent = result.vat?.applies
+    ? `за месяц ${state.showVat ? 'с НДС' : 'без НДС'}`
+    : 'за месяц, НДС не начисляется';
   headline.append(big, per);
   card.appendChild(headline);
 
@@ -299,7 +302,7 @@ function renderCeiling() {
   if (state.method !== 'sbp') return;
 
   const limits = state.registry.reference_limits.find((l) => l.id === 'cbr-sbp-c2b-limits');
-  const group = findCeilingGroup(state.registry, 3);
+  const group = findProfileCeilingGroup(state.registry);
   const c = regulatoryCeiling(group, state.amount);
 
   const h = document.createElement('h2');
@@ -479,7 +482,7 @@ function buildAmountSeries() {
   });
 
   // Предел Банка России — пунктир нейтральным цветом, не ещё одна серия.
-  const group = findCeilingGroup(state.registry, 3);
+  const group = findProfileCeilingGroup(state.registry);
   const ceil = [];
   for (let k = 1; k <= steps; k++) {
     const x = (maxX / steps) * k;
@@ -487,7 +490,7 @@ function buildAmountSeries() {
   }
   series.push({
     id: 'cbr-ceiling',
-    name: 'Предел Банка России для СБП (группа 3) — не тариф банка',
+    name: 'Предел Банка России для СБП (группа 3)',
     shortName: 'предел ЦБ',
     color: 'var(--viz-reference)',
     dashed: true,
@@ -573,11 +576,6 @@ function renderCharts() {
 
 function render() {
   const reg = state.registry;
-
-  $('context-line').textContent =
-    `Контекст сопоставления: ${reg.meta.primary_context_label}. Реестр собран ${date(reg.meta.registry_compiled)}.`;
-  $('profile-line').textContent =
-    `Профиль продавца: ${reg.meta.merchant_profile.activity} (MCC ${reg.meta.merchant_profile.mcc_assumed}, ${reg.meta.merchant_profile.legal_form}).`;
 
   $('terminals-field').hidden = state.context !== 'pos';
   $('scheme-wrap').hidden = !(state.context === 'pos' && state.method === 'card');

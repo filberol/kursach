@@ -6,7 +6,59 @@
 .stack { display: grid; gap: 24px; }
 .stack--tight { gap: 12px; }
 
-.hero { display: grid; gap: 8px; margin-bottom: 8px; }
+/* --- Шапка работы: заголовок и авторы --- */
+
+.hero {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 4px 0 8px;
+}
+.hero__kicker {
+  margin: 0;
+  color: var(--brand-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.hero__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem);
+  line-height: 1.2;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  max-width: 24ch;
+}
+.authors { display: flex; flex-wrap: wrap; gap: 8px; }
+.authors__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: var(--md-shape-full);
+  background: var(--md-surface-container-lowest);
+  border: 1px solid var(--md-outline-variant);
+  color: var(--brand-teal);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.authors__item:hover { background: var(--brand-peach); border-color: var(--brand-sand); color: var(--md-on-error-container); }
+.authors__item:focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+
+/* --- Подпись команды: правый нижний угол страницы --- */
+
+.page-sign {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--md-outline-variant);
+  color: var(--md-on-surface-variant);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.page-sign span { white-space: nowrap; }
 
 .controls-grid {
   display: grid;

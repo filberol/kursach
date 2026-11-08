@@ -63,6 +63,17 @@ describe('Реестр тарифов', () => {
     assert.ok(registry.reference_limits.some((l) => l.kind === 'regulatory_ceiling'));
   });
 
+
+  test('ставка банка, совпавшая с пределом регулятора, всё равно берётся из тарифа банка', () => {
+    // Тариф Уралсиба по СБП численно равен потолку ЦБ. Это не повод подменять
+    // одно другим: у расчётного предложения обязан быть собственный источник.
+    const sbp = registry.offers.filter((o) => o.method === 'sbp' && o.status === 'computable');
+    for (const o of sbp) {
+      assert.notEqual(o.provider, 'Банк России');
+      assert.ok(o.source.official_tariff_document, `${o.id}: нет собственного тарифного документа`);
+    }
+  });
+
   test('НДС не начисляется на СБП ни в одном предложении', () => {
     for (const o of registry.offers.filter((x) => x.method === 'sbp')) {
       assert.equal(o.vat?.applies, false, `${o.id}: НДС на СБП не должен начисляться`);
@@ -132,15 +143,44 @@ describe('Проверка предельных значений Банка Ро
 });
 
 describe('Поведение при недостатке данных', () => {
-  test('все предложения по СБП в основном контексте нерасчётны и объясняют почему', () => {
+  test('нерасчётные предложения по СБП объясняют причину, расчётные опираются на тарифный документ', () => {
     const sbp = registry.offers.filter(
       (o) => o.method === 'sbp' && o.context === registry.meta.primary_context,
     );
     assert.ok(sbp.length >= 2);
-    for (const o of sbp) {
+
+    const computable = sbp.filter((o) => o.status === 'computable');
+    const excluded = sbp.filter((o) => o.status === 'excluded');
+
+    // Большинство провайдеров ставку СБП не раскрывает — это вывод работы.
+    assert.ok(excluded.length >= 2, 'ожидались нераскрытые ставки СБП');
+    for (const o of excluded) {
       const r = calculateOffer(o, { amount: 1000, monthlyTurnover: 1000000 });
       assert.equal(r.verdict, Verdict.NOT_DETERMINABLE, `${o.id} должно быть нерасчётным`);
       assert.ok(r.reason.length > 20, `${o.id}: нет внятной причины`);
+    }
+
+    // Там, где ставка всё-таки опубликована, она должна опираться на
+    // официальный тарифный документ, а не на рекламную страницу.
+    for (const o of computable) {
+      assert.ok(
+        o.source.official_tariff_document,
+        `${o.id}: расчётная ставка СБП обязана ссылаться на тарифный документ`,
+      );
+      const r = calculateOffer(o, { amount: 1000, monthlyTurnover: 1000000 });
+      assert.equal(r.verdict, Verdict.OK);
+      assert.equal(r.vat.applies, false, `${o.id}: НДС на СБП не начисляется`);
+    }
+  });
+
+  test('ограничение на одну операцию действительно ограничивает плату', () => {
+    const capped = registry.offers.filter((o) => o.pricing?.cap_rub);
+    assert.ok(capped.length >= 1, 'в реестре нет тарифа с ограничением за операцию');
+    for (const o of capped) {
+      const cap = o.pricing.cap_rub;
+      const big = calculateOffer(o, { amount: cap * 1000, monthlyTurnover: cap * 1000 });
+      assert.equal(big.perPayment.net, cap, `${o.id}: плата за операцию должна упереться в ${cap}`);
+      assert.equal(big.capApplied, true);
     }
   });
 

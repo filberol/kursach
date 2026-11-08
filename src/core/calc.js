@@ -176,6 +176,7 @@ export function calculateOffer(offer, params) {
   let netMonthly = 0;
   let netPerPayment = null;
   let ratePercent = null;
+  let capApplied = false;
   const breakdown = [];
 
   switch (p.model) {
@@ -210,9 +211,33 @@ export function calculateOffer(offer, params) {
       const effRate = ratePercent + addon;
       ratePercent = effRate;
 
-      netPerPayment = (amount * effRate) / 100;
-      netMonthly = (monthlyTurnover * effRate) / 100;
-      breakdown.push({ label: `Комиссия ${effRate}% от оборота`, value: netMonthly });
+      const uncapped = (amount * effRate) / 100;
+      const cap = p.cap_rub ?? null;
+      capApplied = cap != null && uncapped > cap;
+      netPerPayment = cap == null ? uncapped : Math.min(uncapped, cap);
+
+      if (cap == null) {
+        netMonthly = (monthlyTurnover * effRate) / 100;
+        breakdown.push({ label: `Комиссия ${effRate}% от оборота`, value: netMonthly });
+      } else {
+        // Ограничение задано на ОДНУ операцию, поэтому месячную плату нельзя
+        // получить из оборота напрямую: нужно знать, из скольких платежей он
+        // сложился. Считаем в явном допущении, что все платежи равны введённой
+        // сумме. Это допущение об аргументах расчёта, а не статистика бизнеса,
+        // и оно выводится пользователю.
+        const payments = amount > 0 ? monthlyTurnover / amount : 0;
+        netMonthly = payments * netPerPayment;
+        breakdown.push({ label: `Комиссия ${effRate}% от суммы операции`, value: null });
+        breakdown.push({
+          label: `Ограничение ${cap.toLocaleString('ru-RU')} ₽ за операцию${capApplied ? ' — применено' : ' — не достигнуто'}`,
+          value: null,
+        });
+        breakdown.push({
+          label: `Допущение: платежей за месяц ${payments.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} (оборот поделён на сумму платежа)`,
+          value: null,
+        });
+        breakdown.push({ label: 'Плата за месяц', value: netMonthly });
+      }
       break;
     }
 
@@ -285,6 +310,9 @@ export function calculateOffer(offer, params) {
     verdict: Verdict.OK,
     ratePercent,
     pricingModel: p.model,
+    capRub: p.cap_rub ?? null,
+    capApplied,
+    perPaymentAssumption: p.cap_rub != null,
     breakdown,
     vat: offer.vat,
     perPayment:

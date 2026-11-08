@@ -83,7 +83,7 @@ for (const c of ceilingCases) {
   if (!ok) mismatches++;
   const limits = registry.reference_limits[0];
   checkRows.push([
-    c.id, c.title, `Банк России — предел для СБП, группа ${c.group} (НЕ тариф банка)`,
+    c.id, c.title, `Банк России — предел для СБП, группа ${c.group}`,
     (c.covers || []).join(', '),
     ru(c.amount), '', '',
     (c.hand || []).join(' | '),
@@ -138,7 +138,7 @@ for (const g of limits.groups) {
   dataRows.push([
     `cbr-group-${g.group}`, limits.authority, 'Банк России', 'предел регулятора', 'СБП',
     `${limits.title} — группа ${g.group}`, g.label,
-    'справочный предел (НЕ тариф банка)', 'нет', '',
+    'справочный предел', 'нет', '',
     'ceiling', ru(g.rate_percent), '', '', '', '',
     'нет', '', '', '',
     limits.document, limits.url, '', '', limits.effective_from, limits.accessed, limits.verification,

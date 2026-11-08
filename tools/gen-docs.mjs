@@ -100,7 +100,7 @@ for (const o of reg.offers) {
 }
 L.push('');
 
-L.push('## Предельные значения Банка России (не тариф банка)');
+L.push('## Предельные значения Банка России');
 L.push('');
 const cl = reg.reference_limits.find((x) => x.id === 'cbr-sbp-c2b-limits');
 L.push('');
