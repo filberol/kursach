@@ -26,8 +26,17 @@ function pricing(o) {
   if (!p) return '—';
   switch (p.model) {
     case 'percent': {
-      const add = (p.optional_components || []).map((c) => `+ ${pct(c.rate_percent)} (${c.label}, опционально)`).join(' ');
+      const add = (p.components || [])
+        .map((c) => `+ ${pct(c.rate_percent)} (${c.label}${c.required ? ', обязательно' : ', опционально'})`)
+        .join(' ');
       return `${pct(p.rate_percent)} от суммы платежа ${add}`.trim();
+    }
+    case 'tiered_fixed_plus_overage': {
+      const tiers = p.tiers.map((t) => `${rub(t.fee_rub)} — ${t.label}`).join('; ');
+      const ov = p.overage
+        ? `; сверх ${rub(p.overage.threshold_rub)} за месяц дополнительно ${pct(p.overage.rate_percent)} (минимум ${rub(p.overage.min_per_operation_rub)}) с операции`
+        : '';
+      return `фиксированная плата за месяц по ступеням: ${tiers}${ov}`;
     }
     case 'percent_with_min':
       return `${pct(p.rate_percent)} от оборота; минимальный платёж ${rub(p.min_monthly_fee_rub)}${p.min_fee_scope === 'per_terminal' ? ' за терминал' : ''}`;
@@ -160,12 +169,6 @@ function section(title, list, intro) {
       for (const n of o.applicability.notes) L.push(`- ${n}`);
       L.push('');
     }
-    if (o.missing_parameters?.length) {
-      L.push('**Параметры, которых не хватает для расчёта:**');
-      L.push('');
-      for (const n of o.missing_parameters) L.push(`- ${n}`);
-      L.push('');
-    }
   }
 }
 
@@ -210,7 +213,7 @@ L.push('| Что сверить | Где | Что именно проверит�
 L.push('| --- | --- | --- |');
 for (const o of reg.offers.filter((x) => x.needs_manual_verification)) {
   const what = o.status === 'computable'
-    ? 'ставку, пороги, абонентскую плату и дату вступления в силу'
+    ? 'ставку, пороги и дату вступления в силу'
     : 'не появилось ли публичной числовой ставки';
   L.push(`| ${esc(o.provider_short)} — ${esc(o.product)}${o.plan ? ` · ${esc(o.plan)}` : ''} | ${o.source.url} | ${what} |`);
 }

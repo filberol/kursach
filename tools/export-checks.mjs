@@ -108,7 +108,7 @@ const dataRows = [[
   'НДС начисляется', 'Ставка НДС, %',
   'Порог: оборот от, ₽', 'Порог: оборот до, ₽',
   'Документ', 'Ссылка', 'Снимок', 'Дата снимка', 'Действует с', 'Дата обращения', 'Способ проверки',
-  'Нужна ручная сверка', 'Не хватает параметров', 'Цитаты',
+  'Нужна ручная сверка', 'Цитаты',
 ]];
 
 for (const o of registry.offers) {
@@ -128,7 +128,6 @@ for (const o of registry.offers) {
     o.source.document, o.source.url, o.source.snapshot_url || '', o.source.snapshot_date || '',
     o.source.effective_from || '', o.source.accessed, o.source.verification,
     o.needs_manual_verification ? 'да' : 'нет',
-    (o.missing_parameters || []).join(' | '),
     (o.quotes || []).join(' | '),
   ]);
 }
@@ -143,7 +142,7 @@ for (const g of limits.groups) {
     'нет', '', '', '',
     limits.document, limits.url, '', '', limits.effective_from, limits.accessed, limits.verification,
     limits.needs_manual_verification ? 'да' : 'нет',
-    '', g.quote,
+    g.quote,
   ]);
 }
 

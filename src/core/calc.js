@@ -54,6 +54,17 @@ export function packagesNeeded(turnover, packageSize, terminals) {
   return base + Math.ceil(excess / packageSize);
 }
 
+/**
+ * Ступень фиксированной месячной платы. Верхняя граница включающая:
+ * «по 100 000 рублей (включительно)», «от 100 000,01 по 300 000 (включительно)».
+ */
+export function pickFeeTier(tiers, turnover) {
+  for (const t of tiers || []) {
+    if (turnover <= (t.max_monthly_turnover_rub ?? Infinity)) return t;
+  }
+  return null;
+}
+
 /** Выбор тарифной ступени по месячному обороту. */
 export function pickTier(tiers, turnover) {
   const matches = (tiers || []).filter((t) => {
@@ -115,7 +126,6 @@ export function calculateOffer(offer, params) {
     context: offer.context,
     source: offer.source,
     quotes: offer.quotes || [],
-    missingParameters: offer.missing_parameters || [],
     conditions: offer.applicability?.notes || [],
     outOfContextNote: offer.out_of_context_note || null,
     needsManualVerification: Boolean(offer.needs_manual_verification),
@@ -177,6 +187,7 @@ export function calculateOffer(offer, params) {
   let netPerPayment = null;
   let ratePercent = null;
   let capApplied = false;
+  let approximate = false;
   const breakdown = [];
 
   switch (p.model) {
@@ -199,14 +210,25 @@ export function calculateOffer(offer, params) {
         ratePercent = p.rate_percent;
       }
 
-      // Необязательные компоненты (например, «Чеки от ЮKassa» +1% за чек).
+      // Компоненты платы. Часть из них обязательна: опубликованная ставка
+      // действует только вместе с ними, и при их отключении тариф неизвестен.
       let addon = 0;
-      for (const c of p.optional_components || []) {
+      for (const c of p.components || []) {
         const enabled = options[c.id] ?? c.default_enabled;
-        if (enabled) {
-          addon += c.rate_percent || 0;
-          breakdown.push({ label: `${c.label} (+${c.rate_percent}%)`, value: null });
+        if (!enabled) {
+          if (c.required) {
+            return {
+              ...base,
+              verdict: Verdict.NOT_DETERMINABLE,
+              reasonCode: 'component_required',
+              reasonLabel: 'Ставка опубликована только вместе с обязательной услугой',
+              reason: c.required_reason,
+            };
+          }
+          continue;
         }
+        addon += c.rate_percent || 0;
+        breakdown.push({ label: `${c.label}: ${c.rate_percent}%`, value: null });
       }
       const effRate = ratePercent + addon;
       ratePercent = effRate;
@@ -225,17 +247,24 @@ export function calculateOffer(offer, params) {
         // сложился. Считаем в явном допущении, что все платежи равны введённой
         // сумме. Это допущение об аргументах расчёта, а не статистика бизнеса,
         // и оно выводится пользователю.
-        const payments = amount > 0 ? monthlyTurnover / amount : 0;
+        const rawPayments = amount > 0 ? monthlyTurnover / amount : 0;
+        // Операция неделима, поэтому дробное число платежей недопустимо: берём
+        // целое и помечаем результат оценкой, если оборот не делится нацело.
+        const payments = Math.max(0, Math.round(rawPayments));
+        approximate = Math.abs(rawPayments - payments) > 1e-9;
         netMonthly = payments * netPerPayment;
         breakdown.push({ label: `Комиссия ${effRate}% от суммы операции`, value: null });
         breakdown.push({
           label: `Ограничение ${cap.toLocaleString('ru-RU')} ₽ за операцию${capApplied ? ' — применено' : ' — не достигнуто'}`,
           value: null,
         });
-        breakdown.push({
-          label: `Допущение: платежей за месяц ${payments.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} (оборот поделён на сумму платежа)`,
-          value: null,
-        });
+        breakdown.push({ label: `Операций за месяц: ${payments}`, value: null });
+        if (approximate) {
+          breakdown.push({
+            label: `Оценка: оборот не делится на сумму платежа нацело (${rawPayments.toFixed(3)})`,
+            value: null,
+          });
+        }
         breakdown.push({ label: 'Плата за месяц', value: netMonthly });
       }
       break;
@@ -259,6 +288,46 @@ export function calculateOffer(offer, params) {
       if (minFee > byTurnover) {
         breakdown.push({ label: 'Применён минимальный платёж', value: null });
       }
+      break;
+    }
+
+    case 'tiered_fixed_plus_overage': {
+      const tier = pickFeeTier(p.tiers, monthlyTurnover);
+      if (!tier) {
+        return {
+          ...base,
+          verdict: Verdict.NOT_DETERMINABLE,
+          reasonCode: 'no_matching_tier',
+          reasonLabel: 'Нет подходящей ступени платы',
+          reason: 'Для введённого оборота в опубликованной тарифной сетке нет применимой ступени.',
+        };
+      }
+
+      // Сверх порога тариф добавляет процент с каждой операции. Какая именно
+      // операция считается совершённой «после превышения» и как при этом
+      // разделяются карты и СБП, из опубликованного тарифа не следует,
+      // поэтому выше порога сумма не рассчитывается.
+      const ov = p.overage;
+      if (ov && monthlyTurnover > ov.threshold_rub) {
+        return {
+          ...base,
+          verdict: Verdict.NOT_DETERMINABLE,
+          reasonCode: 'overage_not_determinable',
+          reasonLabel: 'Сверх порога состав доплаты не определён',
+          reason:
+            `При превышении за месяц ${ov.threshold_rub.toLocaleString('ru-RU')} ₽ тариф добавляет ` +
+            `${ov.rate_percent}% (минимум ${ov.min_per_operation_rub} ₽) с каждой операции — сверх фиксированной платы, ` +
+            `а не вместо неё. Из опубликованного тарифа не следует, какие именно операции попадают под доплату: ` +
+            `порог считается по общей сумме операций по картам и через СБП, а последовательность платежей и их ` +
+            `распределение между способами оплаты не заданы. Поэтому сумма не рассчитывается.`,
+          threshold: { kind: 'max', value: ov.threshold_rub },
+        };
+      }
+
+      netMonthly = tier.fee_rub;
+      netPerPayment = null; // плата месячная, к отдельному платежу не привязана
+      breakdown.push({ label: `Ступень: ${tier.label}`, value: null });
+      breakdown.push({ label: 'Фиксированная плата за месяц', value: netMonthly });
       break;
     }
 
@@ -312,7 +381,7 @@ export function calculateOffer(offer, params) {
     pricingModel: p.model,
     capRub: p.cap_rub ?? null,
     capApplied,
-    perPaymentAssumption: p.cap_rub != null,
+    approximate,
     breakdown,
     vat: offer.vat,
     perPayment:

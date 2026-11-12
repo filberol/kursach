@@ -25,7 +25,8 @@ const state = {
   turnover: 2000000,
   terminals: 1,
   showVat: true,
-  options: {},
+  // Услуга чеков ЮKassa обязательна для опубликованной ставки — включена по умолчанию.
+  options: { 'yookassa-receipts': true },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -53,7 +54,7 @@ function readStateFromUrl() {
   if (t != null) state.turnover = t;
   if (n != null) state.terminals = Math.round(n);
   if (q.get('vat') === '0') state.showVat = false;
-  if (q.get('receipts') === '1') state.options = { 'yookassa-receipts': true };
+  if (q.get('receipts') !== null) state.options = { 'yookassa-receipts': q.get('receipts') === '1' };
 }
 
 function writeStateToUrl() {
@@ -68,7 +69,7 @@ function writeStateToUrl() {
     q.set('scheme', state.scheme);
   }
   if (!state.showVat) q.set('vat', '0');
-  if (state.options['yookassa-receipts']) q.set('receipts', '1');
+  q.set('receipts', state.options['yookassa-receipts'] ? '1' : '0');
   history.replaceState(null, '', `${location.pathname}?${q}`);
 }
 
@@ -148,21 +149,6 @@ function sourceBlock(result) {
     const ul = document.createElement('ul');
     ul.className = 'list-plain';
     for (const c of result.conditions) {
-      const li = document.createElement('li');
-      li.textContent = c;
-      ul.appendChild(li);
-    }
-    body.append(h, ul);
-  }
-
-  if (result.missingParameters?.length) {
-    const h = document.createElement('p');
-    h.className = 'md-title-small';
-    h.style.margin = '4px 0 0';
-    h.textContent = 'Чего не хватает в публичных данных';
-    const ul = document.createElement('ul');
-    ul.className = 'list-plain';
-    for (const c of result.missingParameters) {
       const li = document.createElement('li');
       li.textContent = c;
       ul.appendChild(li);
@@ -250,7 +236,9 @@ function offerCard(result, color) {
 
   const rows = document.createElement('div');
   rows.className = 'offer__rows';
-  rows.appendChild(row('Ставка по документу', percent(result.ratePercent)));
+  if (result.ratePercent != null) {
+    rows.appendChild(row('Ставка по документу', percent(result.ratePercent)));
+  }
   if (result.perPayment) {
     rows.appendChild(
       row(
@@ -259,7 +247,12 @@ function offerCard(result, color) {
       ),
     );
   } else {
-    rows.appendChild(row('Комиссия с одного платежа', 'не определяется отдельно (пакетная плата)'));
+    // У месячной и пакетной платы цены отдельного платежа нет.
+    const why =
+      result.pricingModel === 'package'
+        ? 'не определяется отдельно: плата пакетная'
+        : 'не определяется отдельно: плата месячная';
+    rows.appendChild(row('Комиссия с одного платежа', why));
   }
   rows.appendChild(row('Плата за месяц без НДС', money(result.monthly.net)));
   rows.appendChild(
@@ -270,6 +263,9 @@ function offerCard(result, color) {
   );
   rows.appendChild(row('Итого за месяц', money(result.monthly.gross)));
   rows.appendChild(row('Эффективная ставка', percent(result.effectiveRatePercent)));
+  if (result.approximate) {
+    rows.appendChild(row('Точность', 'оценка: оборот не делится на сумму платежа нацело'));
+  }
   card.appendChild(rows);
 
   if (result.breakdown?.length) {
@@ -432,8 +428,10 @@ function buildTurnoverSeries() {
     }
     const thrMin = offer.applicability?.min_monthly_turnover_rub;
     const thrMax = offer.applicability?.max_monthly_turnover_rub;
+    const thrOver = offer.pricing?.overage?.threshold_rub;
     if (thrMin) annotations.push({ x: thrMin, label: `порог ${moneyAxis(thrMin)} ₽` });
     if (thrMax) annotations.push({ x: thrMax, label: `предел ${moneyAxis(thrMax)} ₽` });
+    if (thrOver) annotations.push({ x: thrOver, label: `порог доплаты ${moneyAxis(thrOver)} ₽` });
 
     if (pts.length > 1) {
       series.push({
@@ -490,7 +488,7 @@ function buildAmountSeries() {
   }
   series.push({
     id: 'cbr-ceiling',
-    name: 'Предел Банка России для СБП (группа 3)',
+    name: `Предел Банка России для СБП (группа ${group.group}) — не тариф банка`,
     shortName: 'предел ЦБ',
     color: 'var(--viz-reference)',
     dashed: true,
@@ -498,47 +496,6 @@ function buildAmountSeries() {
   });
 
   return { series };
-}
-
-function fillTable(table, series, xLabel, xFormat, yFormat, sampleCount = 8) {
-  table.replaceChildren();
-  if (!series.length) return;
-  const xs = series[0].points.map((p) => p.x);
-  const picks = [];
-  for (let i = 0; i < sampleCount; i++) {
-    picks.push(xs[Math.round(((xs.length - 1) * i) / (sampleCount - 1))]);
-  }
-
-  const thead = document.createElement('thead');
-  const htr = document.createElement('tr');
-  const th0 = document.createElement('th');
-  th0.textContent = xLabel;
-  htr.appendChild(th0);
-  for (const s of series) {
-    const th = document.createElement('th');
-    th.className = 'num';
-    th.textContent = s.name;
-    htr.appendChild(th);
-  }
-  thead.appendChild(htr);
-
-  const tbody = document.createElement('tbody');
-  for (const x of picks) {
-    const tr = document.createElement('tr');
-    const td0 = document.createElement('td');
-    td0.className = 'num';
-    td0.textContent = xFormat(x);
-    tr.appendChild(td0);
-    for (const s of series) {
-      const p = s.points.reduce((a, b) => (Math.abs(b.x - x) < Math.abs(a.x - x) ? b : a), s.points[0]);
-      const td = document.createElement('td');
-      td.className = 'num';
-      td.textContent = yFormat(p.y);
-      tr.appendChild(td);
-    }
-    tbody.appendChild(tr);
-  }
-  table.append(thead, tbody);
 }
 
 function renderCharts() {
@@ -556,7 +513,6 @@ function renderCharts() {
     yFormat: (v) => percent(round2(v)),
   });
   renderLegend($('chart1-legend'), t.series);
-  fillTable($('chart1-table'), t.series, 'Оборот, ₽', (v) => moneyShort(v), (v) => percent(round2(v)));
 
   const a = buildAmountSeries();
   $('chart2-sub').textContent = `Комиссия за один платёж ${vatSuffix} при обороте ${moneyShort(state.turnover)}. Пунктир — предельное значение Банка России для СБП: ориентир регулятора, а не ставка банка; на ${money(1500)} виден установленный предел за перевод.`;
@@ -569,7 +525,6 @@ function renderCharts() {
     yFormat: (v) => money(round2(v)),
   });
   renderLegend($('chart2-legend'), a.series);
-  fillTable($('chart2-table'), a.series, 'Платёж, ₽', (v) => moneyShort(v), (v) => money(round2(v)));
 }
 
 /* ------------------------- основной рендер ------------------------- */

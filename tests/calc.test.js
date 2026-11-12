@@ -127,6 +127,9 @@ describe('Проверка расчётов вручную (предложени
       if (c.expect.effectiveRatePercent != null) {
         assert.equal(got.effectiveRatePercent, c.expect.effectiveRatePercent);
       }
+      if (c.expect.approximate != null) {
+        assert.equal(got.approximate, c.expect.approximate, 'метка оценки');
+      }
     });
   }
 });

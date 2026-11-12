@@ -114,7 +114,6 @@ function offerCard(o) {
   }
 
   if (o.applicability?.notes?.length) card.appendChild(bullets('Условия применения', o.applicability.notes));
-  if (o.missing_parameters?.length) card.appendChild(bullets('Параметры, которых не хватает для расчёта', o.missing_parameters));
 
   return card;
 }
@@ -273,8 +272,6 @@ function renderTodo(reg) {
     const li = el('li');
     li.appendChild(document.createTextNode(`${o.provider_short} — ${o.product}${o.plan ? ` · ${o.plan}` : ''}: `));
     li.appendChild(link(o.source.url, 'открыть живую страницу'));
-    const extra = o.missing_parameters?.length ? ` · не хватает: ${o.missing_parameters.length} парам.` : '';
-    li.appendChild(document.createTextNode(extra));
     ul.appendChild(li);
   }
   card.appendChild(ul);
