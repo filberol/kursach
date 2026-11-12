@@ -410,9 +410,24 @@ function buildTurnoverSeries() {
   const annotations = [];
 
   offers.forEach((offer, i) => {
+    // Равномерной сетки мало: у ступенчатых тарифов скачок приходится между
+    // узлами, и график занижает его и смещает. Добавляем сами границы ступеней
+    // и точку сразу за границей, чтобы ступень рисовалась там, где она есть.
+    const edges = [];
+    for (const t of offer.pricing?.tiers || []) {
+      const hi = t.max_monthly_turnover_rub;
+      if (hi != null) edges.push(hi, hi + 0.01);
+    }
+    const thr = offer.pricing?.overage?.threshold_rub;
+    if (thr != null) edges.push(thr);
+
+    const xs = [];
+    for (let k = 0; k <= steps; k++) xs.push(xStart + ((maxX - xStart) / steps) * k);
+    for (const e of edges) if (e >= xStart && e <= maxX) xs.push(e);
+    xs.sort((a, b) => a - b);
+
     const pts = [];
-    for (let k = 0; k <= steps; k++) {
-      const x = xStart + ((maxX - xStart) / steps) * k;
+    for (const x of xs) {
       if (x <= 0) continue;
       const r = calculateOffer(offer, {
         amount: state.amount,

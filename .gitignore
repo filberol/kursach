@@ -2,5 +2,3 @@ dist/
 node_modules/
 .DS_Store
 
-# архив замечаний рецензента, в репозиторий не кладём
-peer_kursach_*.zip
