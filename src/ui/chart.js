@@ -225,8 +225,21 @@ export function renderLineChart(host, spec) {
 
   function move(evt) {
     const rect = hit.getBoundingClientRect();
-    const px = Math.max(0, Math.min(iw, evt.clientX - rect.left));
-    const xv = xMin + (px / (iw || 1)) * (xMax - xMin);
+    const rawPx = Math.max(0, Math.min(iw, evt.clientX - rect.left));
+    const rawX = xMin + (rawPx / (iw || 1)) * (xMax - xMin);
+
+    // Значения берутся из ближайшего узла данных, поэтому и заголовок, и
+    // перекрестие привязываются к нему же: иначе подсказка называет один
+    // оборот, а показывает ставку, посчитанную для другого.
+    let xv = rawX;
+    let bestD = Infinity;
+    for (const sr of drawn) {
+      for (const pt of sr.points) {
+        const dd = Math.abs(pt.x - rawX);
+        if (dd < bestD) { bestD = dd; xv = pt.x; }
+      }
+    }
+    const px = sx(xv);
 
     crosshair.setAttribute('opacity', 0.5);
     crosshair.setAttribute('x1', px);

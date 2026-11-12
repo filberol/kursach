@@ -403,7 +403,7 @@ function buildTurnoverSeries() {
   // торговая точка — чтобы читалась зона действия минимального платежа.
   const { from: xStart, to: maxX } =
     state.context === 'online'
-      ? { from: 100_000, to: Math.max(state.turnover * 1.6, 6_000_000) }
+      ? { from: 50_000, to: Math.max(state.turnover * 1.6, 6_000_000) }
       : { from: 20_000, to: Math.max(state.turnover * 2.5, 400_000) };
   const steps = 90;
   const series = [];
